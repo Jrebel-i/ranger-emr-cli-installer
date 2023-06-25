@@ -301,6 +301,70 @@ restartHiveServer2() {
     done
 }
 
+# -------------------------------------   Open Source Trino PlugIn Operations   --------------------------------------- #
+
+initRangerOpenSourceTrinoRepo() {
+    printHeading "INIT RANGER TRINO REPO"
+    cp $APP_HOME/policy/open-source-hive-repo.json $APP_HOME/policy/.open-source-hive-repo.json
+    sed -i "s|@EMR_CLUSTER_ID@|$EMR_CLUSTER_ID|g" $APP_HOME/policy/.open-source-hive-repo.json
+    sed -i "s|@EMR_FIRST_MASTER_NODE@|$(getEmrFirstMasterNode)|g" $APP_HOME/policy/.open-source-hive-repo.json
+    curl -iv -u admin:admin -d @$APP_HOME/policy/.open-source-hive-repo.json -H "Content-Type: application/json" \
+        -X POST $RANGER_URL/service/public/api/repository/
+    echo ""
+}
+
+installRangerOpenSourceTrinoPlugin() {
+    # Must init repo first before install plugin
+    initRangerOpenSourceTrinoRepo
+    printHeading "INSTALL RANGER Trino PLUGIN"
+    tar -zxvf /tmp/ranger-repo/ranger-$RANGER_VERSION-trino-plugin.tar.gz -C /tmp/ &>/dev/null
+    installFilesDir=/tmp/ranger-$RANGER_VERSION-trino-plugin
+    confFile=$installFilesDir/install.properties
+    # backup install.properties
+    cp $confFile $confFile.$(date +%s)
+    cp $APP_HOME/conf/ranger-plugin/trino-template.properties $confFile
+    sed -i "s|@EMR_CLUSTER_ID@|$EMR_CLUSTER_ID|g" $confFile
+    sed -i "s|@SOLR_HOST@|$SOLR_HOST|g" $confFile
+    sed -i "s|@RANGER_HOST@|$RANGER_HOST|g" $confFile
+    installHome=/opt/ranger-$RANGER_VERSION-trino-plugin
+    for node in $(getEmrClusterNodes); do
+        printHeading "INSTALL RANGER Trino PLUGIN ON NODE: [ $node ]: "
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$masterNode sudo rm -rf $installFilesDir $installHome
+        # NOTE: we can't copy files from local /tmp/plugin-dir to remote /opt/plugin-dir,
+        # because hadoop user has no write permission at /opt
+        scp -o StrictHostKeyChecking=no -i $SSH_KEY -r $installFilesDir hadoop@$masterNode:$installFilesDir &>/dev/null
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$masterNode <<EOF
+            sudo cp -r $installFilesDir $installHome
+            # the enable-trino-plugin.sh just work with open source version of hadoop,
+            # for emr, we have to copy ranger jars to /usr/lib/trino/lib/
+            sudo find $installHome/lib -name *.jar -exec cp {} /usr/lib/trino/lib/ \;
+            sudo sh $installHome/enable-trino-plugin.sh
+EOF
+    done
+    restartTrinoServer
+}
+
+restartTrinoServer() {
+    printHeading "RESTART Trino"
+    for node in $(getEmrMasterNodes); do
+        echo "STOP TRINO-MASTER ON MASTER NODE: [ $node ]"
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node sudo systemctl stop trino-server
+        sleep $RESTART_INTERVAL
+        echo "START TRINO-MASTER ON MASTER NODE: [ $node ]"
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node sudo systemctl start trino-server
+        sleep $RESTART_INTERVAL
+    done
+    # stop trino-server first, then master
+    for node in $(getEmrSlaveNodes); do
+        echo "RESTART TRINO-REGIONSERVER ON CORE NODE: [ $node ]"
+        # Get remote hostname (just hostname, not fqdn, only this value can trigger graceful_stop.sh work with hbase-daemon.sh
+        # not trino-daemons.sh, EMR has no this file.
+        remoteHostname=$(ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node hostname)
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node sudo systemctl start trino-server
+        sleep $RESTART_INTERVAL
+    done
+}
+
 # -------------------------------------   Open Source HBase PlugIn Operations   -------------------------------------- #
 
 initRangerOpenSourceHbaseRepo() {

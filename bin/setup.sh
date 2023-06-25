@@ -255,6 +255,9 @@ installRangerPlugins() {
         open-source-hive)
             installRangerOpenSourceHivePlugin
             ;;
+        open-source-trino)
+            installRangerOpenSourceTrinoPlugin
+            ;;
         open-source-hbase)
             installRangerOpenSourceHbasePlugin
             ;;
@@ -670,8 +673,8 @@ resetAllOpts() {
     MIGRATE_KERBEROS_DB_FLAG='/tmp/migrate-kerberos-db.flag'
     JAVA_HOME='/usr/lib/jvm/java'
     COMMON_DEFAULT_PASSWORD='Admin1234!'
-    RANGER_VERSION='2.1.0'
-    RANGER_REPO_URL="https://github.com/bluishglc/ranger-repo/releases/download"
+    RANGER_VERSION='2.4.0'
+    RANGER_REPO_URL="https://github.com/Jrebel-i/ranger-repo/releases/download"
     RANGER_SECRETS_DIR="/opt/ranger-$RANGER_VERSION-secrets"
     AUDIT_EVENTS_LOG_GROUP="/aws-emr/audit-events"
     RANGER_HOST=$(hostname -f)
