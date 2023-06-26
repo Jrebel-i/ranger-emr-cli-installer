@@ -329,15 +329,15 @@ installRangerOpenSourceTrinoPlugin() {
     installHome=/opt/ranger-$RANGER_VERSION-trino-plugin
     for node in $(getEmrClusterNodes); do
         printHeading "INSTALL RANGER Trino PLUGIN ON NODE: [ $node ]: "
-        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$masterNode sudo rm -rf $installFilesDir $installHome
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node sudo rm -rf $installFilesDir $installHome
         # NOTE: we can't copy files from local /tmp/plugin-dir to remote /opt/plugin-dir,
         # because hadoop user has no write permission at /opt
-        scp -o StrictHostKeyChecking=no -i $SSH_KEY -r $installFilesDir hadoop@$masterNode:$installFilesDir &>/dev/null
-        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$masterNode <<EOF
+        scp -o StrictHostKeyChecking=no -i $SSH_KEY -r $installFilesDir hadoop@$node:$installFilesDir &>/dev/null
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node <<EOF
             sudo cp -r $installFilesDir $installHome
             # the enable-trino-plugin.sh just work with open source version of hadoop,
             # for emr, we have to copy ranger jars to /usr/lib/trino/lib/
-            sudo sed -i -e '$a\' /etc/trino/conf/jvm.config
+            sudo sed -i -e '\$a\' /etc/trino/conf/jvm.config
             sudo ln -s /etc/trino/conf/jvm.config /usr/lib/trino/etc/jvm.config
             sudo find $installHome/lib -name *.jar -exec cp {} /usr/lib/trino/lib/ \;
             sudo sh $installHome/enable-trino-plugin.sh
