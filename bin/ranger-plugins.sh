@@ -305,10 +305,10 @@ restartHiveServer2() {
 
 initRangerOpenSourceTrinoRepo() {
     printHeading "INIT RANGER TRINO REPO"
-    cp $APP_HOME/policy/open-source-trino-repo.json $APP_HOME/policy/.open-source-repo-repo.json
-    sed -i "s|@EMR_CLUSTER_ID@|$EMR_CLUSTER_ID|g" $APP_HOME/policy/.open-source-repo-repo.json
-    sed -i "s|@EMR_FIRST_MASTER_NODE@|$(getEmrFirstMasterNode)|g" $APP_HOME/policy/.open-source-repo-repo.json
-    curl -iv -u admin:admin -d @$APP_HOME/policy/.open-source-repo-repo.json -H "Content-Type: application/json" \
+    cp $APP_HOME/policy/open-source-trino-repo.json $APP_HOME/policy/.open-source-trino-repo.json
+    sed -i "s|@EMR_CLUSTER_ID@|$EMR_CLUSTER_ID|g" $APP_HOME/policy/.open-source-trino-repo.json
+    sed -i "s|@EMR_FIRST_MASTER_NODE@|$(getEmrFirstMasterNode)|g" $APP_HOME/policy/.open-source-trino-repo.json
+    curl -iv -u admin:admin -d @$APP_HOME/policy/.open-source-trino-repo.json -H "Content-Type: application/json" \
         -X POST $RANGER_URL/service/public/api/repository/
     echo ""
 }
