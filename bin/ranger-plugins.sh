@@ -401,6 +401,8 @@ installRangerOpenSourceHbasePlugin() {
         sudo cp -r $installFilesDir $installHome
         # the enable-hbase-plugin.sh just work with open source version of hadoop,
         # for emr, we have to copy ranger jars to /usr/lib/hbase/lib/
+        sudo sed -i -e '$a\' /etc/trino/conf/jvm.config
+        sudo ln -s /etc/trino/conf/jvm.config /usr/lib/trino/etc/jvm.config
         sudo find $installHome/lib -name *.jar -exec cp {} /usr/lib/hbase/lib/ \;
         sudo sh $installHome/enable-hbase-plugin.sh
 EOF
