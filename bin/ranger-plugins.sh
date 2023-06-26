@@ -362,7 +362,7 @@ restartTrinoServer() {
         # Get remote hostname (just hostname, not fqdn, only this value can trigger graceful_stop.sh work with hbase-daemon.sh
         # not trino-daemons.sh, EMR has no this file.
         remoteHostname=$(ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node hostname)
-        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node sudo systemctl start trino-server
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node sudo systemctl restart trino-server
         sleep $RESTART_INTERVAL
     done
 }
