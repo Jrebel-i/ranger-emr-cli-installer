@@ -375,7 +375,7 @@ initRangerOpenSourceHbaseRepo() {
     sed -i "s|@EMR_CLUSTER_ID@|$EMR_CLUSTER_ID|g" $APP_HOME/policy/.open-source-hbase-repo.json
     sed -i "s|@EMR_ZK_QUORUM@|$(getEmrZkQuorum)|g" $APP_HOME/policy/.open-source-hbase-repo.json
     curl -iv -u admin:admin -d @$APP_HOME/policy/.open-source-hbase-repo.json -H "Content-Type: application/json" \
-        -X POST $RANGER_URL/service/public/api/repository/
+        -X POST $RANGER_URL/service/plugins/services/
     echo ""
 }
 
