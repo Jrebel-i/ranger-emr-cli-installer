@@ -1,6 +1,5 @@
 {
   "name":"TRINO_@EMR_CLUSTER_ID@",
-  "displayName":"Trino",
   "description":"Trino Repo",
   "isEnabled":true,
   "type":"trino",
