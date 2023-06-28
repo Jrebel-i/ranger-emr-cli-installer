@@ -1,0 +1,16 @@
+{
+  "name": "SPARK_@EMR_CLUSTER_ID@",
+  "description": "Spark Repo",
+  "repositoryType": "hive",
+  "isActive": true,
+  "config": "{
+   \"username\": \"spark\",
+   \"password\": \"spark\",
+   \"jdbc.driverClassName\": \"org.apache.hive.jdbc.HiveDriver\",
+   \"jdbc.url\": \"jdbc:hive2://@EMR_FIRST_MASTER_NODE@:10000/default\",
+   \"commonNameForCertificate\": \"\",
+   \"tag.download.auth.users\":\"spark\",
+   \"policy.download.auth.users\":\"spark\",
+   \"policy.grantrevoke.auth.users\":\"spark\"
+ }"
+}

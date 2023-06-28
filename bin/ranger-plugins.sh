@@ -300,6 +300,52 @@ restartHiveServer2() {
         sleep $RESTART_INTERVAL
     done
 }
+# -------------------------------------   Open Source Spark PlugIn Operations   --------------------------------------- #
+
+initRangerOpenSourceSparkRepo() {
+    printHeading "INIT RANGER Spark REPO"
+    cp $APP_HOME/policy/open-source-spark-repo.json $APP_HOME/policy/.open-source-spark-repo.json
+    sed -i "s|@EMR_CLUSTER_ID@|$EMR_CLUSTER_ID|g" $APP_HOME/policy/.open-source-spark-repo.json
+    sed -i "s|@EMR_FIRST_MASTER_NODE@|$(getEmrFirstMasterNode)|g" $APP_HOME/policy/.open-source-spark-repo.json
+    curl -iv -u admin:admin -d @$APP_HOME/policy/.open-source-spark-repo.json -H "Content-Type: application/json" \
+        -X POST $RANGER_URL/service/public/api/repository/
+    echo ""
+}
+
+installRangerOpenSourceSparkPlugin() {
+    # Must init repo first before install plugin
+    initRangerOpenSourceSparkRepo
+    printHeading "INSTALL RANGER Spark PLUGIN"
+    tar -zxvf /tmp/ranger-repo/ranger-$RANGER_VERSION-spark-plugin.tar.gz -C /tmp/ &>/dev/null
+    installFilesDir=/tmp/ranger-$RANGER_VERSION-spark-plugin
+    securityConfFile=$installFilesDir/ranger-spark-security.xml
+    cp $APP_HOME/conf/ranger-plugin/ranger-spark-security.xml $securityConfFile
+    auditConfFile=$installFilesDir/ranger-spark-audit.xml
+    cp $APP_HOME/conf/ranger-plugin/ranger-spark-audit.xml $auditConfFile
+
+    sed -i "s|@EMR_CLUSTER_ID@|$EMR_CLUSTER_ID|g" $securityConfFile
+    sed -i "s|@RANGER_HOST@|$RANGER_HOST|g" $securityConfFile
+    sed -i "s|@SOLR_HOST@|$SOLR_HOST|g" $auditConfFile
+
+    installHome=/opt/ranger-$RANGER_VERSION-spark-plugin
+    for masterNode in $(getEmrMasterNodes); do
+        printHeading "INSTALL RANGER Spark PLUGIN ON MASTER NODE: [ $masterNode ] "
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$masterNode sudo rm -rf $installFilesDir $installHome
+        # NOTE: we can't copy files from local /tmp/plugin-dir to remote /opt/plugin-dir,
+        # because hadoop user has no write permission at /opt
+        scp -o StrictHostKeyChecking=no -i $SSH_KEY -r $installFilesDir hadoop@$masterNode:$installFilesDir &>/dev/null
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$masterNode <<EOF
+            sudo cp -r $installFilesDir $installHome
+            # the enable-spark-plugin.sh just work with open source version of hadoop,
+            # for emr, we have to copy ranger jars to /usr/lib/spark/jars/
+            sudo find $installHome -name *.jar -exec cp {} /usr/lib/spark/jars/ \;
+            sudo find $installHome -name *.xml -exec cp {} /etc/spark/conf/ \;
+            sudo mkdir /etc/ranger/SPARK_$EMR_CLUSTER_ID && sudo chmod 777 /etc/ranger/SPARK_$EMR_CLUSTER_ID \
+            && sudo chown spark:hadoop /etc/ranger/SPARK_$EMR_CLUSTER_ID
+EOF
+    done
+}
+
 
 # -------------------------------------   Open Source Trino PlugIn Operations   --------------------------------------- #
 
