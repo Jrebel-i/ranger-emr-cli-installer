@@ -182,6 +182,7 @@ downloadRangerRepo() {
 #        wget --recursive --no-parent --no-directories --no-host-directories $RANGER_REPO_FILE_URL -P /tmp/ranger-repo &>/dev/null
         wget $RANGER_REPO_FILE_URL -O /tmp/ranger-repo.zip
         unzip -o /tmp/ranger-repo.zip -d /tmp/
+        wget $RANGER_REPO_SPARK_FILE_URL -O /tmp/ranger-repo/ranger-2.4.0-spark-plugin.tar.gz
     fi
 }
 

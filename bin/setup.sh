@@ -601,6 +601,8 @@ parseArgs() {
     additionalOpts=$*
     # build ranger repo file url
     RANGER_REPO_FILE_URL="$RANGER_REPO_URL/$RANGER_VERSION/ranger-repo.zip"
+    # build ranger spark file url
+    RANGER_REPO_SPARK_FILE_URL="$RANGER_REPO_URL/$RANGER_VERSION/ranger-2.4.0-spark-plugin.tar.gz"
     # build ranger admin url
     RANGER_URL="${RANGER_PROTOCOL}://${RANGER_HOST}:${RANGER_PORT}"
 
