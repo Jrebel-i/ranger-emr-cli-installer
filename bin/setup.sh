@@ -258,6 +258,9 @@ installRangerPlugins() {
         open-source-trino)
             installRangerOpenSourceTrinoPlugin
             ;;
+        open-source-spark)
+            installRangerOpenSourceSparkPlugin
+            ;;
         open-source-hbase)
             installRangerOpenSourceHbasePlugin
             ;;
