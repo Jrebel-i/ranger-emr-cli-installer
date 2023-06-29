@@ -37,7 +37,7 @@ domains = default
 [domain/default]
 autofs_provider = ldap
 #ldap_schema = rfc2307bis
-#ldap_schema = rfc2307
+ldap_schema = rfc2307
 ldap_search_base = $OPENLDAP_BASE_DN
 id_provider = ldap
 auth_provider = ldap
