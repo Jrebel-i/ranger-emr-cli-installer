@@ -371,7 +371,7 @@ installRangerOpenSourceYarnPlugin() {
     sed -i "s|@SOLR_HOST@|$SOLR_HOST|g" $confFile
     sed -i "s|@RANGER_HOST@|$RANGER_HOST|g" $confFile
     installHome=/opt/ranger-$RANGER_VERSION-yarn-plugin
-    for node in $(getEmrClusterNodes); do
+    for node in $(getEmrMasterNodes); do
         printHeading "INSTALL RANGER Yarn PLUGIN ON NODE: [ $node ]: "
         ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node sudo rm -rf $installFilesDir $installHome
         # NOTE: we can't copy files from local /tmp/plugin-dir to remote /opt/plugin-dir,
