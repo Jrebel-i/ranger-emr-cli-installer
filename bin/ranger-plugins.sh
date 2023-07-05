@@ -345,7 +345,62 @@ installRangerOpenSourceSparkPlugin() {
 EOF
     done
 }
+# -------------------------------------   Open Source Yarn PlugIn Operations   --------------------------------------- #
 
+initRangerOpenSourceYarnRepo() {
+    printHeading "INIT RANGER YARN REPO"
+    cp $APP_HOME/policy/open-source-yarn-repo.json $APP_HOME/policy/.open-source-yarn-repo.json
+    sed -i "s|@EMR_CLUSTER_ID@|$EMR_CLUSTER_ID|g" $APP_HOME/policy/.open-source-yarn-repo.json
+    sed -i "s|@EMR_FIRST_MASTER_NODE@|$(getEmrFirstMasterNode)|g" $APP_HOME/policy/.open-source-yarn-repo.json
+    curl -iv -u admin:admin -d @$APP_HOME/policy/.open-source-yarn-repo.json -H "Content-Type: application/json" \
+        -X POST $RANGER_URL/service/plugins/services/
+    echo ""
+}
+
+installRangerOpenSourceYarnPlugin() {
+    # Must init repo first before install plugin
+    initRangerOpenSourceYarnRepo
+    printHeading "INSTALL RANGER Yarn PLUGIN"
+    tar -zxvf /tmp/ranger-repo/ranger-$RANGER_VERSION-yarn-plugin.tar.gz -C /tmp/ &>/dev/null
+    installFilesDir=/tmp/ranger-$RANGER_VERSION-yarn-plugin
+    confFile=$installFilesDir/install.properties
+    # backup install.properties
+    cp $confFile $confFile.$(date +%s)
+    cp $APP_HOME/conf/ranger-plugin/yarn-template.properties $confFile
+    sed -i "s|@EMR_CLUSTER_ID@|$EMR_CLUSTER_ID|g" $confFile
+    sed -i "s|@SOLR_HOST@|$SOLR_HOST|g" $confFile
+    sed -i "s|@RANGER_HOST@|$RANGER_HOST|g" $confFile
+    installHome=/opt/ranger-$RANGER_VERSION-yarn-plugin
+    for node in $(getEmrClusterNodes); do
+        printHeading "INSTALL RANGER Yarn PLUGIN ON NODE: [ $node ]: "
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node sudo rm -rf $installFilesDir $installHome
+        # NOTE: we can't copy files from local /tmp/plugin-dir to remote /opt/plugin-dir,
+        # because hadoop user has no write permission at /opt
+        scp -o StrictHostKeyChecking=no -i $SSH_KEY -r $installFilesDir hadoop@$node:$installFilesDir &>/dev/null
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node <<EOF
+            sudo cp -r $installFilesDir $installHome
+            # the enable-yarn-plugin.sh just work with open source version of hadoop,
+            # for emr, we have to copy ranger jars to /usr/lib/yarn/lib/
+            sudo sed -i -e '\$a\' /etc/yarn/conf/jvm.config
+            sudo ln -s /etc/yarn/conf/jvm.config /usr/lib/yarn/etc/jvm.config
+            sudo find $installHome/lib -name *.jar -exec cp {} /usr/lib/hadoop-yarn/lib/ \;
+            sudo sh $installHome/enable-yarn-plugin.sh
+EOF
+    done
+    restartYarnServer
+}
+
+restartYarnServer() {
+    printHeading "RESTART Yarn ResourceManager"
+    for node in $(getEmrMasterNodes); do
+        echo "STOP Yarn-ResourceManager ON MASTER NODE: [ $node ]"
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node sudo systemctl stop hadoop-yarn-resourcemanager
+        sleep $RESTART_INTERVAL
+        echo "START Yarn-ResourceManager ON MASTER NODE: [ $node ]"
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node sudo systemctl start hadoop-yarn-resourcemanager
+        sleep $RESTART_INTERVAL
+    done
+}
 
 # -------------------------------------   Open Source Trino PlugIn Operations   --------------------------------------- #
 

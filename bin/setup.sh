@@ -261,6 +261,9 @@ installRangerPlugins() {
         open-source-spark)
             installRangerOpenSourceSparkPlugin
             ;;
+        open-source-yarn)
+            installRangerOpenSourceYarnPlugin
+            ;;
         open-source-hbase)
             installRangerOpenSourceHbasePlugin
             ;;
