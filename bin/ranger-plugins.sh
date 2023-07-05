@@ -381,8 +381,6 @@ installRangerOpenSourceYarnPlugin() {
             sudo cp -r $installFilesDir $installHome
             # the enable-yarn-plugin.sh just work with open source version of hadoop,
             # for emr, we have to copy ranger jars to /usr/lib/yarn/lib/
-            sudo sed -i -e '\$a\' /etc/yarn/conf/jvm.config
-            sudo ln -s /etc/yarn/conf/jvm.config /usr/lib/yarn/etc/jvm.config
             sudo find $installHome/lib -name *.jar -exec cp {} /usr/lib/hadoop-yarn/lib/ \;
             sudo sh $installHome/enable-yarn-plugin.sh
 EOF
