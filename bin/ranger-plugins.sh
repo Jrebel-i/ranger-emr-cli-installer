@@ -380,12 +380,13 @@ installRangerOpenSourceYarnPlugin() {
         ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$node <<EOF
             sudo cp -r $installFilesDir $installHome
             # the enable-yarn-plugin.sh just work with open source version of hadoop,
-            # for emr, we have to copy ranger jars to /usr/lib/yarn/lib/
+            # for emr, we have to copy ranger jars to /usr/lib/hadoop-yarn/lib/
             sudo find $installHome/lib -name *.jar -exec cp {} /usr/lib/hadoop-yarn/lib/ \;
             sudo wget https://repo.maven.apache.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar -O $installHome/install/lib/commons-compress-1.21.jar
             sudo wget https://repo.maven.apache.org/maven2/org/apache/commons/commons-lang3/3.6/commons-lang3-3.6.jar -O $installHome/install/lib/commons-lang3-3.6.jar
             sudo wget https://repo.maven.apache.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar -O $installHome/install/lib/commons-logging-1.2.jar
-            sudo wget https://repo.maven.apache.org/maven2/org/apache/htrace/htrace-core4/4.1.0-incubating/htrace-core4-4.1.0-incubating.jar -O $installHome/install/lib/commons-logging-1.2.jar
+            sudo wget https://repo.maven.apache.org/maven2/org/apache/htrace/htrace-core4/4.1.0-incubating/htrace-core4-4.1.0-incubating.jar -O $installHome/install/lib/htrace-core4-4.1.0-incubating.jar
+            sudo sed -i 's|\${HCOMPONENT_INSTALL_DIR}/share/hadoop/hdfs/lib|\${HCOMPONENT_INSTALL_DIR}|g' $installHome/enable-yarn-plugin.sh
             sudo sh $installHome/enable-yarn-plugin.sh
 EOF
     done
