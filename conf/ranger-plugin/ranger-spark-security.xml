@@ -12,7 +12,7 @@
 
     <property>
         <name>ranger.plugin.spark.policy.cache.dir</name>
-        <value>/etc/ranger/sparkServer/policycache</value>
+        <value>/etc/ranger/SPARK_@EMR_CLUSTER_ID@/policycache</value>
     </property>
 
     <property>
