@@ -348,10 +348,10 @@ restartHiveMetasoreServer2() {
     printHeading "RESTART HIVESERVER2"
     for masterNode in $(getEmrMasterNodes); do
         echo "STOP HIVESERVER2 ON MASTER NODE: [ $masterNode ]"
-        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$masterNode sudo systemctl stop hive-server2
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$masterNode sudo systemctl stop hive-server2 hive-hcatalog-server
         sleep $RESTART_INTERVAL
         echo "START HIVESERVER2 ON MASTER NODE: [ $masterNode ]"
-        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$masterNode sudo systemctl start hive-server2
+        ssh -o StrictHostKeyChecking=no -i $SSH_KEY -T hadoop@$masterNode sudo systemctl start hive-server2 hive-hcatalog-server
         sleep $RESTART_INTERVAL
     done
 }
