@@ -1,7 +1,7 @@
 {
   "name": "METASTORE_@EMR_CLUSTER_ID@",
   "description": "Hive METASTORE Repo",
-  "repositoryType": "Hive METASTORE",
+  "repositoryType": "Hive",
   "isActive": true,
   "config": "{
    \"username\": \"hive\",
